@@ -446,7 +446,7 @@ $('#addRule').addEventListener('submit',async e=>{e.preventDefault();if(!db){toa
 (async()=>{
   const timer=setTimeout(()=>setLive(false,'offline · showing nothing yet'),10000);
   try{db=mkDb()}catch(e){db=null}
-  if(!db){clearTimeout(timer);setLive(false,'database not connected');['#trackerBody'].forEach(s=>$(s).innerHTML='<tr><td colspan="8"><div class="empty">The database isn't connected yet.</div></td></tr>');return}
+  if(!db){clearTimeout(timer);setLive(false,'database not connected');['#trackerBody'].forEach(s=>$(s).innerHTML='<tr><td colspan="8"><div class="empty">The database is not connected yet.</div></td></tr>');return}
   const live=()=>{clearTimeout(timer);setLive(true,'live')};
   const sub=(col,key,fn)=>db.collection(col).onSnapshot(s=>{state[key]=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(!s.metadata.fromCache)live();fn()},err=>setLive(false,'error · '+err.code));
   sub('slots','slots',renderTracker);sub('requests','requests',renderRequests);sub('study','study',renderStudy);sub('sounds','sounds',renderSounds);
