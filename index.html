@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AK Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a dark "control room" — 3D reel field behind a sticky glass nav; each section is a hash route of glass panels that tilt in 3D. Dark-first by design. */
+:root{
+  --bg:#07080d; --bg2:#0d0f17; --panel:rgba(22,24,36,.62); --panel-solid:#141623;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --fg:#eef0f7; --dim:#9aa0b4; --faint:#5f6579;
+  --red:#ff2d3d; --red2:#ff6a4d; --gold:#ffc24b; --green:#3ddc84; --blue:#5aa9ff;
+  --display:"Anton","Impact","Arial Narrow",sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+#scene{position:fixed;inset:0;z-index:0;pointer-events:none}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% -10%,rgba(255,45,61,.16),transparent 60%),radial-gradient(ellipse at 100% 100%,rgba(90,169,255,.08),transparent 55%)}
+.wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin-top:14px;display:flex;align-items:center;gap:14px;padding:10px 12px;border:1px solid var(--line2);border-radius:16px;background:rgba(10,11,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;letter-spacing:.04em;white-space:nowrap}
+.bolt{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--red),var(--red2));box-shadow:0 0 18px rgba(255,45,61,.55)}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{color:var(--dim);text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:600;font-size:13px;white-space:nowrap;transition:.2s}
+.tabs a:hover{color:var(--fg);background:rgba(255,255,255,.05)}
+.tabs a[aria-current="page"]{color:#fff;background:linear-gradient(135deg,rgba(255,45,61,.9),rgba(255,106,77,.8));box-shadow:0 6px 20px rgba(255,45,61,.35)}
+.live{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.dot.on{background:var(--green);box-shadow:0 0 10px var(--green)}
+.hero{padding:56px 4px 24px;perspective:900px}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(48px,9vw,112px);line-height:.92;letter-spacing:.01em;margin:0;text-transform:uppercase;text-wrap:balance;transform:rotateX(8deg);transform-origin:bottom;text-shadow:0 2px 0 #3a0a10,0 4px 0 #2a070b,0 6px 0 #1c0508,0 18px 40px rgba(255,45,61,.35)}
+.hero h1 span{color:var(--red)}
+.hero p{color:var(--dim);max-width:62ch;margin:14px 0 0;font-size:15px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red2)}
+section[data-view]{animation:rise .5s ease both}
+@keyframes rise{from{transform:translateY(10px)}to{transform:none}}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3,.g2{grid-template-columns:minmax(0,1fr)}}
+.panel{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);min-width:0;transform-style:preserve-3d;transition:transform .25s ease,border-color .25s}
+.tilt:hover{border-color:var(--line2)}
+.panel h2{font-family:var(--display);font-weight:400;font-size:26px;letter-spacing:.03em;margin:0 0 4px;text-transform:uppercase}
+.panel h3{font-size:13px;font-weight:700;margin:0;color:var(--fg)}
+.sub{color:var(--dim);font-size:13px;margin:0 0 14px}
+.stat .k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.stat .v{font-family:var(--display);font-size:44px;line-height:1.05;margin-top:6px;font-variant-numeric:tabular-nums;transform:translateZ(30px)}
+.stat .n{color:var(--faint);font-size:12px}
+.stat.red .v{color:var(--red)} .stat.gold .v{color:var(--gold)} .stat.green .v{color:var(--green)}
+.row-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:28px 0 14px}
+.row-head h2{font-family:var(--display);font-weight:400;font-size:34px;text-transform:uppercase;margin:0;letter-spacing:.02em}
+.btn{appearance:none;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--fg);font:600 13px var(--body);padding:9px 14px;border-radius:11px;cursor:pointer;transition:.18s}
+.btn:hover{background:rgba(255,255,255,.09)}
+.btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--red),var(--red2));box-shadow:0 8px 24px rgba(255,45,61,.3)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:focus-visible,.tabs a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.pill:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input,select,textarea{font:inherit;color:var(--fg);background:rgba(0,0,0,.35);border:1px solid var(--line2);border-radius:10px;padding:9px 11px;min-width:0;width:100%}
+textarea{min-height:92px;resize:vertical}
+label{display:grid;gap:6px;font-size:12px;color:var(--dim);font-weight:600}
+.form{display:grid;gap:12px}
+.form .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tbl{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+th{font-family:var(--mono);font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.25)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr.day td{background:rgba(255,45,61,.06);font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--red2);text-transform:uppercase;padding:7px 12px}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.title-cell{font-weight:600;max-width:280px}
+.title-cell a{color:var(--fg);text-decoration:none;border-bottom:1px dashed var(--faint)}
+.slot{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line2);border-radius:6px;padding:2px 6px}
+.pill{display:inline-flex;align-items:center;gap:6px;font:700 11px var(--body);letter-spacing:.03em;padding:5px 10px;border-radius:999px;border:1px solid transparent;cursor:pointer;background:none;color:inherit;text-transform:uppercase}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.s-todo{color:var(--faint);border-color:rgba(255,255,255,.12)}
+.s-delivered{color:var(--blue);border-color:rgba(90,169,255,.35);background:rgba(90,169,255,.08)}
+.s-posted{color:var(--green);border-color:rgba(61,220,132,.35);background:rgba(61,220,132,.08)}
+.s-paid{color:var(--gold);border-color:rgba(255,194,75,.4);background:rgba(255,194,75,.1)}
+.s-unpaid{color:var(--red);border-color:rgba(255,45,61,.35);background:rgba(255,45,61,.08)}
+.s-new{color:var(--red2);border-color:rgba(255,106,77,.4);background:rgba(255,106,77,.1)}
+.s-working{color:var(--gold);border-color:rgba(255,194,75,.4);background:rgba(255,194,75,.1)}
+.s-done{color:var(--green);border-color:rgba(61,220,132,.35);background:rgba(61,220,132,.08)}
+.s-fresh{color:var(--green);border-color:rgba(61,220,132,.35);background:rgba(61,220,132,.08)}
+.s-used{color:var(--faint);border-color:rgba(255,255,255,.12)}
+.s-scrapped{color:var(--red);border-color:rgba(255,45,61,.3)}
+.x{appearance:none;border:0;background:none;color:var(--faint);cursor:pointer;font-size:16px;line-height:1;padding:4px 6px;border-radius:6px}
+.x:hover{color:var(--red);background:rgba(255,45,61,.1)}
+.empty{color:var(--dim);text-align:center;padding:34px 12px;border:1px dashed var(--line2);border-radius:14px}
+.req{display:grid;gap:10px}
+.card{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(0,0,0,.25);display:grid;gap:8px;min-width:0}
+.card .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.card p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.card .reply{border-left:2px solid var(--red);padding-left:10px;color:var(--dim);font-size:13px}
+.study{display:grid;gap:16px}
+.study .card{padding:18px}
+.study h3{font-family:var(--display);font-weight:400;font-size:24px;letter-spacing:.02em;text-transform:uppercase}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+.cols h4{margin:0 0 6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+.cols ul{margin:0;padding-left:18px;display:grid;gap:5px;color:var(--dim)}
+.cols li b{color:var(--fg)}
+.h-good{color:var(--green)} .h-bad{color:var(--red)} .h-next{color:var(--gold)}
+.rules{columns:2 340px;column-gap:14px}
+.rule-group{break-inside:avoid;margin-bottom:14px}
+.rule-group ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.rule-group li{display:flex;gap:10px;align-items:flex-start;color:var(--dim)}
+.rule-group li::before{content:"";flex:0 0 auto;width:8px;height:8px;margin-top:6px;transform:rotate(45deg);background:var(--red);box-shadow:0 0 8px rgba(255,45,61,.6)}
+.chart{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) 64px;gap:12px;align-items:center}
+@media (max-width:620px){.bar{grid-template-columns:minmax(0,1fr) 56px}.bar .track{grid-column:1/-1;order:3}}
+.bar .lbl{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .track{height:16px;border-radius:6px;background:rgba(255,255,255,.04);overflow:hidden;position:relative}
+.bar .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#7a1420,var(--red));box-shadow:0 0 14px rgba(255,45,61,.4);transform-origin:left;animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+.bar.his .fill{background:linear-gradient(90deg,#16365a,var(--blue));box-shadow:0 0 14px rgba(90,169,255,.35)}
+@keyframes grow{from{transform:scaleX(.02)}}
+.bar .val{font-family:var(--mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--panel-solid);border:1px solid var(--line2);padding:10px 16px;border-radius:12px;z-index:20;transition:.3s;font-weight:600;font-size:13px}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.note{font-size:12px;color:var(--faint)}
+.quick{display:grid;gap:10px}
+.qitem{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0;min-width:0}
+.qitem:last-child{border-bottom:0}
+.qitem span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="wrap">
+  <nav class="top" aria-label="Sections">
+    <div class="brand"><div class="bolt" aria-hidden="true"><svg width="14" height="18" viewBox="0 0 14 18"><path d="M9 0 0 10h5l-1 8 10-11H8l1-7z" fill="#fff"/></svg></div>AK STUDIO</div>
+    <div class="tabs" role="tablist">
+      <a href="#home">Home</a><a href="#tracker">Tracker</a><a href="#requests">Requests</a><a href="#study">Reel Study</a><a href="#stats">Page Stats</a><a href="#sounds">Sounds</a><a href="#rules">Rules</a>
+    </div>
+    <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">connecting</span></div>
+  </nav>
+
+  <!-- HOME -->
+  <section data-view="home">
+    <div class="hero">
+      <div class="eyebrow">Surge · @brooa7a · edit room</div>
+      <h1>Five reels.<br><span>Every day.</span></h1>
+      <p>Everything Victor and Claude do for AK in one place: what got made, what got posted and paid, what to make next, and what the page is telling us.</p>
+    </div>
+    <div class="grid g4" id="homeStats">
+      <div class="panel stat tilt red"><div class="k">Unpaid</div><div class="v" id="hUnpaid">—</div><div class="n" id="hUnpaidN">loading</div></div>
+      <div class="panel stat tilt gold"><div class="k">Paid so far</div><div class="v" id="hPaid">—</div><div class="n" id="hPaidN">&nbsp;</div></div>
+      <div class="panel stat tilt green"><div class="k">Posted reels</div><div class="v" id="hPosted">—</div><div class="n" id="hPostedN">&nbsp;</div></div>
+      <div class="panel stat tilt"><div class="k">Open requests</div><div class="v" id="hReq">—</div><div class="n">for Claude to make</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="panel tilt">
+        <h2>Daily plan</h2><p class="sub">The mix AK posts from, every day.</p>
+        <div class="quick" id="plan"></div>
+      </div>
+      <div class="panel tilt">
+        <h2>Latest study</h2><p class="sub" id="latestStudyDate">No study yet.</p>
+        <div class="quick" id="latestStudy"></div>
+        <div style="margin-top:12px"><a class="btn" href="#study">Open reel study</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section data-view="tracker" hidden>
+    <div class="row-head"><div><div class="eyebrow">Content plan</div><h2>Tracker</h2></div>
+      <div class="legend"><span>Tap a status to change it · tap paid to toggle</span></div></div>
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="panel stat tilt red"><div class="k">Unpaid</div><div class="v" id="tUnpaid">—</div><div class="n" id="tUnpaidN">&nbsp;</div></div>
+      <div class="panel stat tilt gold"><div class="k">Paid</div><div class="v" id="tPaid">—</div><div class="n">&nbsp;</div></div>
+      <div class="panel stat tilt"><div class="k">Delivered</div><div class="v" id="tDel">—</div><div class="n">waiting on AK</div></div>
+      <div class="panel stat tilt green"><div class="k">Posted</div><div class="v" id="tPost">—</div><div class="n">on his page</div></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Slot</th><th>Reel</th><th>Type</th><th>Status</th><th>Paid</th><th style="text-align:right">Price</th><th style="text-align:right">Views</th><th></th></tr></thead>
+      <tbody id="trackerBody"><tr><td colspan="8" class="empty">Loading the tracker…</td></tr></tbody>
+    </table></div>
+    <div class="panel" style="margin-top:14px">
+      <h2>Log a reel</h2>
+      <form class="form" id="addSlot">
+        <div class="two">
+          <label for="fDate">Date<input type="date" id="fDate" required></label>
+          <label for="fSlot">Slot<select id="fSlot"><option value="r1">r1 · 8AM Experiment</option><option value="r2">r2 · 12PM Talking</option><option value="r3">r3 · 3PM POV</option><option value="r4">r4 · 6:30PM Talking</option><option value="r5">r5 · 9:30PM Punchy</option><option value="st">st · 11AM Story</option><option value="x">extra</option></select></label>
+          <label for="fPrice">Price<select id="fPrice"><option value="15">$15 lifestyle</option><option value="25">$25 talking / story</option></select></label>
+          <label for="fStatus">Status<select id="fStatus"><option>delivered</option><option>posted</option><option>todo</option></select></label>
+        </div>
+        <label for="fTitle">Reel name<input id="fTitle" placeholder="AK - Morning Meeting" required></label>
+        <div><button class="btn primary" type="submit">Add to tracker</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- REQUESTS -->
+  <section data-view="requests" hidden>
+    <div class="row-head"><div><div class="eyebrow">Victor → Claude</div><h2>Requests</h2></div></div>
+    <div class="grid g2">
+      <div class="panel tilt">
+        <h2>Ask for a video</h2>
+        <p class="sub">Drop what you want made. Then message Claude "check my requests" and it picks them up from here.</p>
+        <form class="form" id="addReq">
+          <label for="rText">What should Claude make?<textarea id="rText" placeholder="Jacuzzi testimony video: hot tub roll call + AK in front of the jacuzzi saying 50K for today boys" required></textarea></label>
+          <div class="two">
+            <label for="rKind">Kind<select id="rKind"><option>New reel</option><option>Fix / revision</option><option>Story sequence</option><option>Trend</option><option>Other</option></select></label>
+            <label for="rDue">Needed by<input type="date" id="rDue"></label>
+          </div>
+          <div><button class="btn primary" type="submit">Send request</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <h2>Queue</h2><p class="sub">Newest first. Claude replies under each one.</p>
+        <p class="note" id="hb" style="margin:-6px 0 12px"></p>
+        <div class="req" id="reqList"><div class="empty">No requests yet. Add one on the left.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDY -->
+  <section data-view="study" hidden>
+    <div class="row-head"><div><div class="eyebrow">Daily</div><h2>Reel Study</h2></div><span class="note">Claude writes one entry per study of @brooa7a</span></div>
+    <div class="study" id="studyList"><div class="empty">No studies yet.</div></div>
+  </section>
+
+  <!-- STATS -->
+  <section data-view="stats" hidden>
+    <div class="row-head"><div><div class="eyebrow">@brooa7a reels</div><h2>Page Stats</h2></div>
+      <div class="legend"><span><i style="background:var(--red)"></i>Our edits</span><span><i style="background:var(--blue)"></i>AK's own posts</span></div></div>
+    <div class="panel"><p class="sub" id="statsDate">No snapshot yet.</p><div class="chart" id="chart"></div></div>
+  </section>
+
+  <!-- SOUNDS -->
+  <section data-view="sounds" hidden>
+    <div class="row-head"><div><div class="eyebrow">Never reuse a sound</div><h2>Sound Library</h2></div></div>
+    <div class="tbl"><table style="min-width:620px">
+      <thead><tr><th>Song</th><th>Used on</th><th>Status</th><th></th></tr></thead>
+      <tbody id="soundBody"><tr><td colspan="4" class="empty">Loading sounds…</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <!-- RULES -->
+  <section data-view="rules" hidden>
+    <div class="row-head"><div><div class="eyebrow">What AK wants</div><h2>Rules &amp; Style</h2></div></div>
+    <div class="rules" id="rulesList"><div class="empty">Loading rules…</div></div>
+    <div class="panel" style="margin-top:6px">
+      <form class="form" id="addRule">
+        <div class="two">
+          <label for="ruleCat">Section<select id="ruleCat"><option>Clips</option><option>Sound</option><option>Text &amp; captions</option><option>Format</option><option>Workflow</option></select></label>
+          <label for="ruleText" style="grid-column:span 2">New rule<input id="ruleText" placeholder="e.g. keep talking videos under 40 seconds" required></label>
+        </div>
+        <div><button class="btn primary" type="submit">Add rule</button></div>
+      </form>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+const fmtDate=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(e){return d}};
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),2200)}
+const PLAN=[['r1','8:00 AM','Experiment / trial',15],['st','11:00 AM','Story sequence',25],['r2','12:00 PM','Talking / results',25],['r3','3:00 PM','POV story',15],['r4','6:30 PM','Talking / results',25],['r5','9:30 PM','Punchy / trend',15]];
+const ORDER={r1:1,st:2,r2:3,r3:4,r4:5,r5:6,x:7};
+$('#plan').innerHTML=PLAN.map(p=>`<div class="qitem"><span><span class="slot">${p[0]}</span> &nbsp;<b>${p[1]}</b> · ${esc(p[2])}</span><span class="note">$${p[3]}</span></div>`).join('');
+try{$('#fDate').value=new Date().toISOString().slice(0,10)}catch(e){}
+
+/* ---------- routing ---------- */
+const VIEWS=['home','tracker','requests','study','stats','sounds','rules'];
+function route(){const h=(location.hash||'#home').slice(1);const v=VIEWS.includes(h)?h:'home';
+  document.querySelectorAll('section[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);
+  document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+v?'page':'false'));
+  window.scrollTo({top:0,behavior:'instant'in window?'instant':'auto'});}
+addEventListener('hashchange',route);route();
+
+/* ---------- 3D tilt on panels ---------- */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduce){document.addEventListener('pointermove',e=>{const p=e.target.closest&&e.target.closest('.tilt');document.querySelectorAll('.tilt').forEach(el=>{if(el!==p)el.style.transform=''});if(!p)return;const r=p.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;p.style.transform=`perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateZ(6px)`});}
+
+/* ---------- three.js reel field ---------- */
+(function scene(){
+  if(!window.THREE)return;const cv=$('#scene');let W=innerWidth,H=innerHeight;
+  let R;try{R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true})}catch(e){return}
+  R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.setSize(W,H);
+  const S=new THREE.Scene();S.fog=new THREE.Fog(0x07080d,8,30);
+  const C=new THREE.PerspectiveCamera(55,W/H,.1,100);C.position.set(0,0,12);
+  S.add(new THREE.AmbientLight(0x404050,1));const L=new THREE.PointLight(0xff2d3d,2.2,40);L.position.set(4,5,6);S.add(L);const L2=new THREE.PointLight(0x5aa9ff,1.2,40);L2.position.set(-6,-4,4);S.add(L2);
+  const group=new THREE.Group();S.add(group);
+  // floating phone-frame reels
+  const frameGeo=new THREE.BoxGeometry(1,1.78,.06);
+  const mats=[new THREE.MeshStandardMaterial({color:0x1a1c2a,metalness:.6,roughness:.3,emissive:0x220407}),new THREE.MeshStandardMaterial({color:0x2a0a10,metalness:.5,roughness:.35,emissive:0x3a060c}),new THREE.MeshStandardMaterial({color:0x111522,metalness:.7,roughness:.25,emissive:0x06101e})];
+  const edgeMat=new THREE.LineBasicMaterial({color:0xff2d3d,transparent:true,opacity:.55});
+  const items=[];
+  for(let i=0;i<34;i++){const m=new THREE.Mesh(frameGeo,mats[i%3]);const e=new THREE.LineSegments(new THREE.EdgesGeometry(frameGeo),edgeMat);m.add(e);
+    const r=6+Math.random()*7,a=Math.random()*Math.PI*2;m.position.set(Math.cos(a)*r,(Math.random()-.5)*10,Math.sin(a)*r-6);
+    m.rotation.set(Math.random()*.6,Math.random()*Math.PI,Math.random()*.4);const s=.5+Math.random()*.9;m.scale.setScalar(s);
+    items.push({m,sp:.1+Math.random()*.3,ph:Math.random()*6});group.add(m)}
+  // central bolt ring
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(2.6,.035,16,160),new THREE.MeshBasicMaterial({color:0xff2d3d}));ring.position.set(3.2,1.2,-2);S.add(ring);
+  const ring2=new THREE.Mesh(new THREE.TorusGeometry(3.4,.015,16,160),new THREE.MeshBasicMaterial({color:0xff6a4d,transparent:true,opacity:.5}));ring2.position.copy(ring.position);S.add(ring2);
+  // particles
+  const pg=new THREE.BufferGeometry();const N=500,pos=new Float32Array(N*3);for(let i=0;i<N*3;i++)pos[i]=(Math.random()-.5)*40;pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  S.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0xff6a4d,size:.04,transparent:true,opacity:.6})));
+  let mx=0,my=0,sy=0;addEventListener('pointermove',e=>{mx=e.clientX/W-.5;my=e.clientY/H-.5});addEventListener('scroll',()=>{sy=scrollY},{passive:true});
+  addEventListener('resize',()=>{W=innerWidth;H=innerHeight;R.setSize(W,H);C.aspect=W/H;C.updateProjectionMatrix()});
+  let t=0;function tick(){t+=reduce?0:.006;group.rotation.y=t*.35+mx*.4;group.rotation.x=my*.15;
+    items.forEach(o=>{o.m.position.y+=Math.sin(t*3+o.ph)*.002;o.m.rotation.y+=reduce?0:.003*o.sp*3});
+    ring.rotation.x=1.1+Math.sin(t)*.2;ring.rotation.y=t*.8;ring2.rotation.x=1.3;ring2.rotation.y=-t*.5;
+    C.position.y=-sy*.004;R.render(S,C);if(!reduce)requestAnimationFrame(tick)}
+  tick();
+})();
+
+
+/* ---------- Supabase-backed store (same API the page used on claude.ai) ---------- */
+const SUPABASE_URL='https://thzeoabqldepelbeogrm.supabase.co', SUPABASE_KEY='sb_publishable_lYBPlW1Y7Gy0aw6rS6U61Q_F92CTKR7';
+function mkDb(){
+  if(!window.supabase||SUPABASE_URL.startsWith('__'))return null;
+  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const subs=[];
+  const refreshAll=()=>subs.forEach(f=>f());
+  async function up(c,id,d){const {error}=await sb.from('docs').upsert({collection:c,id,data:d,updated_at:new Date().toISOString()});if(error)throw {code:error.code||'error'};refreshAll()}
+  function docRef(c,id){return{
+    async set(d){await up(c,id,d)},
+    async update(d){const {data,error}=await sb.from('docs').select('data').eq('collection',c).eq('id',id).maybeSingle();if(error)throw {code:'error'};await up(c,id,Object.assign({},data&&data.data,d))},
+    async delete(){const {error}=await sb.from('docs').delete().eq('collection',c).eq('id',id);if(error)throw {code:'error'};refreshAll()},
+    onSnapshot(next,err){const run=async()=>{const {data,error}=await sb.from('docs').select('data').eq('collection',c).eq('id',id).maybeSingle();if(error){err&&err({code:'unavailable'});return}next({exists:!!data,data:()=>data?data.data:undefined})};subs.push(run);run()}}}
+  setInterval(refreshAll,15000);
+  return{
+    collection(c){return{
+      onSnapshot(next,err){const run=async()=>{const {data,error}=await sb.from('docs').select('id,data').eq('collection',c);if(error){err&&err({code:'unavailable'});return}next({docs:data.map(r=>({id:r.id,exists:true,data:()=>r.data})),metadata:{fromCache:false}})};subs.push(run);run()},
+      doc(id){return docRef(c,id)},
+      async add(d){const id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);await up(c,id,d);return docRef(c,id)}}},
+    doc(p){const [c,id]=p.split('/');return docRef(c,id)}};
+}
+
+/* ---------- data ---------- */
+const state={slots:[],requests:[],study:[],sounds:[],rules:null,stats:null};
+let db=null;
+function setLive(ok,txt){$('#dot').classList.toggle('on',ok);$('#liveTxt').textContent=txt}
+
+function renderTracker(){
+  const rows=state.slots.slice().sort((a,b)=>b.date.localeCompare(a.date)||(ORDER[a.slot]||9)-(ORDER[b.slot]||9));
+  const done=rows.filter(r=>r.status!=='todo');
+  const unpaid=done.filter(r=>!r.paid).reduce((s,r)=>s+(+r.price||0),0);
+  const paid=rows.filter(r=>r.paid).reduce((s,r)=>s+(+r.price||0),0);
+  const posted=rows.filter(r=>r.status==='posted');
+  const delivered=rows.filter(r=>r.status==='delivered');
+  $('#tUnpaid').textContent=$('#hUnpaid').textContent=money(unpaid);
+  const un=done.filter(r=>!r.paid).length;$('#tUnpaidN').textContent=$('#hUnpaidN').textContent=un+' reel'+(un===1?'':'s')+' waiting on payment';
+  $('#tPaid').textContent=$('#hPaid').textContent=money(paid);$('#hPaidN').textContent=rows.filter(r=>r.paid).length+' reels paid';
+  $('#tPost').textContent=$('#hPosted').textContent=posted.length;
+  const tv=posted.reduce((s,r)=>s+(+r.views||0),0);$('#hPostedN').textContent=tv.toLocaleString('en-US')+' total views';
+  $('#tDel').textContent=delivered.length;
+  if(!rows.length){$('#trackerBody').innerHTML='<tr><td colspan="8"><div class="empty">No reels logged yet. Add the first one below.</div></td></tr>';return}
+  let html='',last='';
+  rows.forEach(r=>{if(r.date!==last){html+=`<tr class="day"><td colspan="8">${esc(fmtDate(r.date))}</td></tr>`;last=r.date}
+    const t=r.link&&/^https:\/\//.test(r.link)?`<a href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.title||'Untitled')}</a>`:esc(r.title||'Untitled');
+    html+=`<tr><td><span class="slot">${esc(r.slot)}</span></td><td class="title-cell">${t}</td><td>${esc(r.type||'')}</td>
+    <td><button class="pill s-${esc(r.status)}" data-act="status" data-id="${esc(r.id)}">${esc(r.status)}</button></td>
+    <td><button class="pill ${r.paid?'s-paid':'s-unpaid'}" data-act="paid" data-id="${esc(r.id)}">${r.paid?'paid':'unpaid'}</button></td>
+    <td class="num">$${esc(r.price)}</td><td class="num">${r.views!=null?Number(r.views).toLocaleString('en-US'):'—'}</td>
+    <td><button class="x" title="Remove" aria-label="Remove ${esc(r.title)}" data-act="del" data-id="${esc(r.id)}">×</button></td></tr>`});
+  $('#trackerBody').innerHTML=html;
+}
+function renderRequests(){
+  const list=state.requests.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  $('#hReq').textContent=list.filter(r=>r.status!=='done').length;
+  if(!list.length){$('#reqList').innerHTML='<div class="empty">No requests yet. Add one on the left.</div>';return}
+  $('#reqList').innerHTML=list.map(r=>`<div class="card"><div class="meta"><button class="pill s-${esc(r.status||'new')}" data-act="rstatus" data-id="${esc(r.id)}">${esc(r.status||'new')}</button><span>${esc(r.kind||'')}</span><span>${r.createdAt?esc(new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})):''}</span>${r.due?`<span>due ${esc(fmtDate(r.due))}</span>`:''}<span style="flex:1"></span><button class="x" aria-label="Delete request" data-act="rdel" data-id="${esc(r.id)}">×</button></div><p>${esc(r.text)}</p>${r.reply?`<div class="reply">${esc(r.reply)}</div>`:''}</div>`).join('');
+}
+function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('')}
+function renderStudy(){
+  const list=state.study.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(!list.length){$('#studyList').innerHTML='<div class="empty">No studies yet. Ask Claude to study the page.</div>';$('#latestStudy').innerHTML='';return}
+  $('#studyList').innerHTML=list.map(s=>`<div class="card panel tilt"><div class="meta"><span>${esc(fmtDate(s.date))}</span></div><h3>${esc(s.headline||'Reel study')}</h3>${s.summary?`<p style="color:var(--dim)">${esc(s.summary)}</p>`:''}
+    <div class="cols"><div><h4 class="h-good">Working</h4><ul>${li(s.working)}</ul></div><div><h4 class="h-bad">Not working</h4><ul>${li(s.notWorking)}</ul></div><div><h4 class="h-next">Make next</h4><ul>${li(s.next)}</ul></div></div></div>`).join('');
+  const s=list[0];$('#latestStudyDate').textContent=fmtDate(s.date)+' · '+(s.headline||'');
+  $('#latestStudy').innerHTML=(s.next||[]).slice(0,4).map(x=>`<div class="qitem"><span>${esc(x)}</span></div>`).join('');
+}
+function renderStats(){
+  const st=state.stats;if(!st||!st.reels||!st.reels.length){$('#chart').innerHTML='<div class="empty">No snapshot yet.</div>';return}
+  $('#statsDate').textContent='Snapshot '+fmtDate(st.date)+' · views on the reels tab';
+  const rs=st.reels.slice().sort((a,b)=>b.views-a.views);const max=Math.max(...rs.map(r=>r.views),1);
+  $('#chart').innerHTML=rs.map((r,i)=>`<div class="bar ${r.ours?'':'his'}"><div class="lbl" title="${esc(r.title)}">${esc(r.title)}</div><div class="track"><div class="fill" style="width:${(r.views/max*100).toFixed(1)}%;animation-delay:${i*40}ms"></div></div><div class="val">${Number(r.views).toLocaleString('en-US')}</div></div>`).join('');
+}
+function renderSounds(){
+  const list=state.sounds.slice().sort((a,b)=>({fresh:0,used:1,scrapped:2}[a.status]??3)-({fresh:0,used:1,scrapped:2}[b.status]??3)||String(a.title).localeCompare(String(b.title)));
+  if(!list.length){$('#soundBody').innerHTML='<tr><td colspan="4"><div class="empty">No sounds logged yet.</div></td></tr>';return}
+  $('#soundBody').innerHTML=list.map(s=>`<tr><td><b>${esc(s.title)}</b><div class="note">${esc(s.artist||'')}</div></td><td>${esc(s.usedOn||'—')}</td><td><button class="pill s-${esc(s.status)}" data-act="snd" data-id="${esc(s.id)}">${esc(s.status)}</button></td><td></td></tr>`).join('');
+}
+function renderRules(){
+  const items=(state.rules&&state.rules.items)||[];if(!items.length){$('#rulesList').innerHTML='<div class="empty">No rules yet.</div>';return}
+  const g={};items.forEach((r,i)=>{(g[r.cat]=g[r.cat]||[]).push([r,i])});
+  $('#rulesList').innerHTML=Object.keys(g).map(k=>`<div class="panel rule-group tilt"><h2>${esc(k)}</h2><ul>${g[k].map(([r,i])=>`<li><span style="flex:1">${esc(r.text)}</span><button class="x" aria-label="Remove rule" data-act="rudel" data-i="${i}">×</button></li>`).join('')}</ul></div>`).join('');
+}
+
+/* ---------- actions ---------- */
+const NEXT={todo:'delivered',delivered:'posted',posted:'todo'};
+const RNEXT={new:'working',working:'done',done:'new'};
+const SNEXT={fresh:'used',used:'scrapped',scrapped:'fresh'};
+const pendingDel={};
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  if(!db){toast('Database not connected');return}
+  const id=b.dataset.id,act=b.dataset.act;
+  try{
+    if(act==='status'){const r=state.slots.find(x=>x.id===id);await db.collection('slots').doc(id).update({status:NEXT[r.status]||'delivered',updatedAt:Date.now()});toast('Status updated')}
+    if(act==='paid'){const r=state.slots.find(x=>x.id===id);await db.collection('slots').doc(id).update({paid:!r.paid,updatedAt:Date.now()});toast(r.paid?'Marked unpaid':'Marked paid')}
+    if(act==='del'||act==='rdel'){if(!pendingDel[id]){pendingDel[id]=1;b.textContent='Delete?';b.style.color='var(--red)';setTimeout(()=>{delete pendingDel[id];b.textContent='×';b.style.color=''},2500);return}
+      await db.collection(act==='del'?'slots':'requests').doc(id).delete();toast('Removed')}
+    if(act==='rstatus'){const r=state.requests.find(x=>x.id===id);await db.collection('requests').doc(id).update({status:RNEXT[r.status||'new']});toast('Request updated')}
+    if(act==='snd'){const s=state.sounds.find(x=>x.id===id);await db.collection('sounds').doc(id).update({status:SNEXT[s.status]||'used'});toast('Sound updated')}
+    if(act==='rudel'){const items=((state.rules&&state.rules.items)||[]).slice();items.splice(+b.dataset.i,1);await db.doc('meta/rules').set({items});toast('Rule removed')}
+  }catch(err){toast('Could not save: '+(err&&err.code||'error'))}
+});
+$('#addSlot').addEventListener('submit',async e=>{e.preventDefault();if(!db){toast('Database not connected');return}
+  const date=$('#fDate').value,slot=$('#fSlot').value,price=+$('#fPrice').value,title=$('#fTitle').value.trim();if(!date||!title)return;
+  const types={r1:'Experiment',r2:'Talking / results',r3:'POV story',r4:'Talking / results',r5:'Punchy / trend',st:'Story sequence',x:'Extra'};
+  const id=slot==='x'?date+'_x'+Date.now().toString(36):date+'_'+slot;
+  try{await db.collection('slots').doc(id).set({date,slot,type:types[slot],price,title,status:$('#fStatus').value,paid:false,views:null,link:'',createdAt:Date.now(),updatedAt:Date.now()});$('#fTitle').value='';toast('Added '+title)}catch(err){toast('Could not save: '+(err&&err.code||'error'))}});
+$('#addReq').addEventListener('submit',async e=>{e.preventDefault();if(!db){toast('Database not connected');return}
+  const text=$('#rText').value.trim();if(!text)return;
+  try{await db.collection('requests').add({text,kind:$('#rKind').value,due:$('#rDue').value||'',status:'new',reply:'',createdAt:Date.now()});$('#rText').value='';toast('Request sent')}catch(err){toast('Could not save: '+(err&&err.code||'error'))}});
+$('#addRule').addEventListener('submit',async e=>{e.preventDefault();if(!db){toast('Database not connected');return}
+  const text=$('#ruleText').value.trim();if(!text)return;const items=((state.rules&&state.rules.items)||[]).concat([{cat:$('#ruleCat').value,text}]);
+  try{await db.doc('meta/rules').set({items});$('#ruleText').value='';toast('Rule added')}catch(err){toast('Could not save: '+(err&&err.code||'error'))}});
+
+/* ---------- connect ---------- */
+(async()=>{
+  const timer=setTimeout(()=>setLive(false,'offline · showing nothing yet'),10000);
+  try{db=mkDb()}catch(e){db=null}
+  if(!db){clearTimeout(timer);setLive(false,'database not connected');['#trackerBody'].forEach(s=>$(s).innerHTML='<tr><td colspan="8"><div class="empty">The database isn't connected yet.</div></td></tr>');return}
+  const live=()=>{clearTimeout(timer);setLive(true,'live')};
+  const sub=(col,key,fn)=>db.collection(col).onSnapshot(s=>{state[key]=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(!s.metadata.fromCache)live();fn()},err=>setLive(false,'error · '+err.code));
+  sub('slots','slots',renderTracker);sub('requests','requests',renderRequests);sub('study','study',renderStudy);sub('sounds','sounds',renderSounds);
+  db.doc('meta/rules').onSnapshot(d=>{state.rules=d.exists?d.data():{items:[]};renderRules()},()=>{});
+  db.doc('meta/stats').onSnapshot(d=>{state.stats=d.exists?d.data():null;renderStats()},()=>{});
+  const hbRender=()=>{const h=state.hb;if(!h||!h.at)return;const m=Math.max(0,Math.round((Date.now()-h.at)/60000));$('#hb').textContent='Claude last checked '+(m<1?'just now':m+' min ago')+(h.next?' · next check around '+new Date(h.next).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'')+(h.note?' · '+h.note:'')};
+  db.doc('meta/heartbeat').onSnapshot(d=>{state.hb=d.exists?d.data():null;hbRender()},()=>{});setInterval(hbRender,60000);
+})();
+})();
+</script>
+
+</body>
+</html>
