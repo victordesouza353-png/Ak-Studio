@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AK Requests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#07080d;--panel:rgba(22,24,36,.7);--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--fg:#eef0f7;--dim:#9aa0b4;--faint:#5f6579;
+--red:#ff2d3d;--red2:#ff6a4d;--gold:#ffc24b;--green:#3ddc84;--display:"Anton","Impact",sans-serif;--body:"Inter",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:14px;line-height:1.5;min-height:100vh;
+ background:radial-gradient(ellipse at 50% -10%,rgba(255,45,61,.18),transparent 55%),radial-gradient(ellipse at 100% 100%,rgba(90,169,255,.08),transparent 55%),var(--bg);background-attachment:fixed}
+.wrap{max-width:1100px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 64px}
+nav{position:sticky;top:0;z-index:5;margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border:1px solid var(--line2);border-radius:16px;background:rgba(10,11,18,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;letter-spacing:.04em}
+.bolt{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--red),var(--red2));box-shadow:0 0 18px rgba(255,45,61,.55)}
+nav a{color:var(--dim);text-decoration:none;font-weight:600;font-size:13px;padding:8px 12px;border-radius:10px;border:1px solid var(--line2)}
+nav a:hover{color:var(--fg);background:rgba(255,255,255,.05)}
+.live{font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--faint)}.dot.on{background:var(--green);box-shadow:0 0 10px var(--green)}
+.hero{padding:44px 2px 22px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red2)}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(44px,8vw,96px);line-height:.95;margin:6px 0 0;text-transform:uppercase}
+h1 span{color:var(--red)}
+.hero p{color:var(--dim);max-width:60ch;margin:12px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);min-width:0}
+.panel h2{font-family:var(--display);font-weight:400;font-size:26px;text-transform:uppercase;margin:0 0 4px;letter-spacing:.03em}
+.sub{color:var(--dim);font-size:13px;margin:0 0 14px}
+.form{display:grid;gap:12px}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:grid;gap:6px;font-size:12px;color:var(--dim);font-weight:600}
+input,select,textarea{font:inherit;color:var(--fg);background:rgba(0,0,0,.35);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:140px;resize:vertical}
+.btn{appearance:none;border:0;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font:700 14px var(--body);padding:11px 16px;border-radius:11px;cursor:pointer;box-shadow:0 8px 24px rgba(255,45,61,.3)}
+.btn:hover{filter:brightness(1.08)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.f{appearance:none;border:1px solid var(--line2);background:none;color:var(--dim);font:600 12px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.f[aria-pressed="true"]{color:#fff;background:rgba(255,45,61,.18);border-color:rgba(255,45,61,.5)}
+.list{display:grid;gap:10px}
+.card{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(0,0,0,.28);display:grid;gap:8px;min-width:0}
+.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.card p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.reply{border-left:2px solid var(--red);padding-left:10px;color:var(--dim);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.pill{display:inline-flex;align-items:center;gap:6px;font:700 11px var(--body);padding:5px 10px;border-radius:999px;border:1px solid transparent;cursor:pointer;background:none;color:inherit;text-transform:uppercase}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.s-new{color:var(--red2);border-color:rgba(255,106,77,.4);background:rgba(255,106,77,.1)}
+.s-working{color:var(--gold);border-color:rgba(255,194,75,.4);background:rgba(255,194,75,.1)}
+.s-done{color:var(--green);border-color:rgba(61,220,132,.35);background:rgba(61,220,132,.08)}
+.x{appearance:none;border:0;background:none;color:var(--faint);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:6px}
+.x:hover{color:var(--red);background:rgba(255,45,61,.1)}
+.empty{color:var(--dim);text-align:center;padding:30px 12px;border:1px dashed var(--line2);border-radius:14px}
+.counts{display:flex;gap:16px;font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:14px;flex-wrap:wrap}
+.counts b{color:var(--fg);font-size:18px;font-family:var(--display);font-weight:400;margin-right:4px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);opacity:0;background:#141623;border:1px solid var(--line2);padding:10px 16px;border-radius:12px;z-index:20;transition:.3s;font-weight:600;font-size:13px}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="brand"><div class="bolt" aria-hidden="true"><svg width="14" height="18" viewBox="0 0 14 18"><path d="M9 0 0 10h5l-1 8 10-11H8l1-7z" fill="#fff"/></svg></div>AK REQUESTS</div>
+    <div style="display:flex;gap:10px;align-items:center"><span class="live"><span class="dot" id="dot"></span><span id="liveTxt">connecting</span></span><a href="./">AK Studio &#8599;</a></div>
+  </nav>
+  <div class="hero">
+    <div class="eyebrow">Victor &rarr; Claude</div>
+    <h1>Drop it.<br><span>Get it made.</span></h1>
+    <p>Add what AK wants made here, then message Claude "check my requests". Claude replies under each one when it's done.</p>
+    <div class="counts"><span><b id="cNew">0</b>new</span><span><b id="cWork">0</b>in progress</span><span><b id="cDone">0</b>done</span></div>
+  </div>
+  <div class="grid">
+    <div class="panel">
+      <h2>New request</h2><p class="sub">One request per video or story sequence keeps it organized.</p>
+      <form class="form" id="addReq">
+        <label for="rText">What should Claude make?<textarea id="rText" placeholder="e.g. talking video from the new lock-in clip, cut the part where he says the top 5" required></textarea></label>
+        <div class="two">
+          <label for="rKind">Kind<select id="rKind"><option>New reel</option><option>Talking video</option><option>Fix / revision</option><option>Story sequence</option><option>Trend</option><option>Other</option></select></label>
+          <label for="rDue">Needed by<input type="date" id="rDue"></label>
+        </div>
+        <div><button class="btn" type="submit">Send request</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Queue</h2>
+      <div class="filters" role="group" aria-label="Filter">
+        <button class="f" data-f="open" aria-pressed="true">Open</button><button class="f" data-f="done" aria-pressed="false">Done</button><button class="f" data-f="all" aria-pressed="false">All</button>
+      </div>
+      <div class="list" id="list"><div class="empty">Loading requests…</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+const SUPABASE_URL='https://thzeoabqldepelbeogrm.supabase.co', SUPABASE_KEY='sb_publishable_lYBPlW1Y7Gy0aw6rS6U61Q_F92CTKR7';
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}catch(e){return d}};
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),2200)}
+let sb=null, reqs=[], filter='open'; const NEXT={new:'working',working:'done',done:'new'}; const pend={};
+try{sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+function live(ok,t){$('#dot').classList.toggle('on',ok);$('#liveTxt').textContent=t}
+async function load(){
+  if(!sb){live(false,'not connected');$('#list').innerHTML='<div class="empty">The database is not connected.</div>';return}
+  const {data,error}=await sb.from('docs').select('id,data').eq('collection','requests');
+  if(error){live(false,'error');return}
+  live(true,'live'); reqs=data.map(r=>Object.assign({id:r.id},r.data)); render();
+}
+function render(){
+  const st=r=>r.status||'new';
+  $('#cNew').textContent=reqs.filter(r=>st(r)==='new').length;$('#cWork').textContent=reqs.filter(r=>st(r)==='working').length;$('#cDone').textContent=reqs.filter(r=>st(r)==='done').length;
+  let L=reqs.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(filter==='open')L=L.filter(r=>st(r)!=='done'); if(filter==='done')L=L.filter(r=>st(r)==='done');
+  if(!L.length){$('#list').innerHTML=`<div class="empty">${filter==='open'?'Nothing open. Add a request on the left.':'Nothing here yet.'}</div>`;return}
+  $('#list').innerHTML=L.map(r=>`<div class="card"><div class="meta"><button class="pill s-${esc(st(r))}" data-act="st" data-id="${esc(r.id)}" title="Tap to change status">${esc(st(r))}</button><span>${esc(r.kind||'')}</span><span>${r.createdAt?esc(new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})):''}</span>${r.due?`<span>due ${esc(fmt(r.due))}</span>`:''}<span style="flex:1"></span><button class="x" aria-label="Delete request" data-act="del" data-id="${esc(r.id)}">&times;</button></div><p>${esc(r.text)}</p>${r.reply?`<div class="reply">${esc(r.reply)}</div>`:''}</div>`).join('');
+}
+async function save(id,d){const {error}=await sb.from('docs').upsert({collection:'requests',id,data:d,updated_at:new Date().toISOString()});if(error)throw error}
+document.addEventListener('click',async e=>{
+  const f=e.target.closest('.f'); if(f){filter=f.dataset.f;document.querySelectorAll('.f').forEach(b=>b.setAttribute('aria-pressed',b===f?'true':'false'));render();return}
+  const b=e.target.closest('[data-act]'); if(!b||!sb)return; const id=b.dataset.id; const r=reqs.find(x=>x.id===id); if(!r)return;
+  try{
+    if(b.dataset.act==='st'){const d=Object.assign({},r);delete d.id;d.status=NEXT[r.status||'new'];await save(id,d);toast('Status: '+d.status)}
+    if(b.dataset.act==='del'){if(!pend[id]){pend[id]=1;b.textContent='Delete?';b.style.color='var(--red)';setTimeout(()=>{delete pend[id];b.innerHTML='&times;';b.style.color=''},2500);return}
+      const {error}=await sb.from('docs').delete().eq('collection','requests').eq('id',id);if(error)throw error;toast('Deleted')}
+    load();
+  }catch(err){toast('Could not save')}
+});
+$('#addReq').addEventListener('submit',async e=>{e.preventDefault();if(!sb){toast('Database not connected');return}
+  const text=$('#rText').value.trim();if(!text)return;
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  try{await save(id,{text,kind:$('#rKind').value,due:$('#rDue').value||'',status:'new',reply:'',createdAt:Date.now()});$('#rText').value='';$('#rDue').value='';toast('Request sent');load()}catch(err){toast('Could not save')}});
+load(); setInterval(load,15000);
+})();
+</script>
+</body>
+</html>
