@@ -145,7 +145,7 @@ td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:righ
   <nav class="top" aria-label="Sections">
     <div class="brand"><div class="bolt" aria-hidden="true"><svg width="14" height="18" viewBox="0 0 14 18"><path d="M9 0 0 10h5l-1 8 10-11H8l1-7z" fill="#fff"/></svg></div>AK STUDIO</div>
     <div class="tabs" role="tablist">
-      <a href="#home">Home</a><a href="#tracker">Tracker</a><a href="#requests">Requests</a><a href="#study">Reel Study</a><a href="#stats">Page Stats</a><a href="#sounds">Sounds</a><a href="#rules">Rules</a>
+      <a href="#home">Home</a><a href="#tracker">Tracker</a><a href="requests.html">Requests &#8599;</a><a href="#study">Reel Study</a><a href="#stats">Page Stats</a><a href="#sounds">Sounds</a><a href="#rules">Rules</a>
     </div>
     <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">connecting</span></div>
   </nav>
@@ -161,7 +161,7 @@ td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:righ
       <div class="panel stat tilt red"><div class="k">Unpaid</div><div class="v" id="hUnpaid">—</div><div class="n" id="hUnpaidN">loading</div></div>
       <div class="panel stat tilt gold"><div class="k">Paid so far</div><div class="v" id="hPaid">—</div><div class="n" id="hPaidN">&nbsp;</div></div>
       <div class="panel stat tilt green"><div class="k">Posted reels</div><div class="v" id="hPosted">—</div><div class="n" id="hPostedN">&nbsp;</div></div>
-      <div class="panel stat tilt"><div class="k">Open requests</div><div class="v" id="hReq">—</div><div class="n">for Claude to make</div></div>
+      <a class="panel stat tilt" href="requests.html" style="text-decoration:none;color:inherit"><div class="k">Open requests</div><div class="v" id="hReq">—</div><div class="n">open the requests site &#8599;</div></a>
     </div>
     <div class="grid g2" style="margin-top:14px">
       <div class="panel tilt">
@@ -206,28 +206,6 @@ td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:righ
   </section>
 
   <!-- REQUESTS -->
-  <section data-view="requests" hidden>
-    <div class="row-head"><div><div class="eyebrow">Victor → Claude</div><h2>Requests</h2></div></div>
-    <div class="grid g2">
-      <div class="panel tilt">
-        <h2>Ask for a video</h2>
-        <p class="sub">Drop what you want made. Then message Claude "check my requests" and it picks them up from here.</p>
-        <form class="form" id="addReq">
-          <label for="rText">What should Claude make?<textarea id="rText" placeholder="Jacuzzi testimony video: hot tub roll call + AK in front of the jacuzzi saying 50K for today boys" required></textarea></label>
-          <div class="two">
-            <label for="rKind">Kind<select id="rKind"><option>New reel</option><option>Fix / revision</option><option>Story sequence</option><option>Trend</option><option>Other</option></select></label>
-            <label for="rDue">Needed by<input type="date" id="rDue"></label>
-          </div>
-          <div><button class="btn primary" type="submit">Send request</button></div>
-        </form>
-      </div>
-      <div class="panel">
-        <h2>Queue</h2><p class="sub">Newest first. Claude replies under each one.</p>
-        <p class="note" id="hb" style="margin:-6px 0 12px"></p>
-        <div class="req" id="reqList"><div class="empty">No requests yet. Add one on the left.</div></div>
-      </div>
-    </div>
-  </section>
 
   <!-- STUDY -->
   <section data-view="study" hidden>
@@ -284,7 +262,7 @@ $('#plan').innerHTML=PLAN.map(p=>`<div class="qitem"><span><span class="slot">${
 try{$('#fDate').value=new Date().toISOString().slice(0,10)}catch(e){}
 
 /* ---------- routing ---------- */
-const VIEWS=['home','tracker','requests','study','stats','sounds','rules'];
+const VIEWS=['home','tracker','study','stats','sounds','rules'];
 function route(){const h=(location.hash||'#home').slice(1);const v=VIEWS.includes(h)?h:'home';
   document.querySelectorAll('section[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);
   document.querySelectorAll('.tabs a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+v?'page':'false'));
@@ -380,10 +358,7 @@ function renderTracker(){
   $('#trackerBody').innerHTML=html;
 }
 function renderRequests(){
-  const list=state.requests.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  $('#hReq').textContent=list.filter(r=>r.status!=='done').length;
-  if(!list.length){$('#reqList').innerHTML='<div class="empty">No requests yet. Add one on the left.</div>';return}
-  $('#reqList').innerHTML=list.map(r=>`<div class="card"><div class="meta"><button class="pill s-${esc(r.status||'new')}" data-act="rstatus" data-id="${esc(r.id)}">${esc(r.status||'new')}</button><span>${esc(r.kind||'')}</span><span>${r.createdAt?esc(new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})):''}</span>${r.due?`<span>due ${esc(fmtDate(r.due))}</span>`:''}<span style="flex:1"></span><button class="x" aria-label="Delete request" data-act="rdel" data-id="${esc(r.id)}">×</button></div><p>${esc(r.text)}</p>${r.reply?`<div class="reply">${esc(r.reply)}</div>`:''}</div>`).join('');
+  $('#hReq').textContent=state.requests.filter(r=>r.status!=='done').length;
 }
 function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('')}
 function renderStudy(){
@@ -435,9 +410,6 @@ $('#addSlot').addEventListener('submit',async e=>{e.preventDefault();if(!db){toa
   const types={r1:'Experiment',r2:'Talking / results',r3:'POV story',r4:'Talking / results',r5:'Punchy / trend',st:'Story sequence',x:'Extra'};
   const id=slot==='x'?date+'_x'+Date.now().toString(36):date+'_'+slot;
   try{await db.collection('slots').doc(id).set({date,slot,type:types[slot],price,title,status:$('#fStatus').value,paid:false,views:null,link:'',createdAt:Date.now(),updatedAt:Date.now()});$('#fTitle').value='';toast('Added '+title)}catch(err){toast('Could not save: '+(err&&err.code||'error'))}});
-$('#addReq').addEventListener('submit',async e=>{e.preventDefault();if(!db){toast('Database not connected');return}
-  const text=$('#rText').value.trim();if(!text)return;
-  try{await db.collection('requests').add({text,kind:$('#rKind').value,due:$('#rDue').value||'',status:'new',reply:'',createdAt:Date.now()});$('#rText').value='';toast('Request sent')}catch(err){toast('Could not save: '+(err&&err.code||'error'))}});
 $('#addRule').addEventListener('submit',async e=>{e.preventDefault();if(!db){toast('Database not connected');return}
   const text=$('#ruleText').value.trim();if(!text)return;const items=((state.rules&&state.rules.items)||[]).concat([{cat:$('#ruleCat').value,text}]);
   try{await db.doc('meta/rules').set({items});$('#ruleText').value='';toast('Rule added')}catch(err){toast('Could not save: '+(err&&err.code||'error'))}});
@@ -452,8 +424,6 @@ $('#addRule').addEventListener('submit',async e=>{e.preventDefault();if(!db){toa
   sub('slots','slots',renderTracker);sub('requests','requests',renderRequests);sub('study','study',renderStudy);sub('sounds','sounds',renderSounds);
   db.doc('meta/rules').onSnapshot(d=>{state.rules=d.exists?d.data():{items:[]};renderRules()},()=>{});
   db.doc('meta/stats').onSnapshot(d=>{state.stats=d.exists?d.data():null;renderStats()},()=>{});
-  const hbRender=()=>{const h=state.hb;if(!h||!h.at)return;const m=Math.max(0,Math.round((Date.now()-h.at)/60000));$('#hb').textContent='Claude last checked '+(m<1?'just now':m+' min ago')+(h.next?' · next check around '+new Date(h.next).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'')+(h.note?' · '+h.note:'')};
-  db.doc('meta/heartbeat').onSnapshot(d=>{state.hb=d.exists?d.data():null;hbRender()},()=>{});setInterval(hbRender,60000);
 })();
 })();
 </script>
