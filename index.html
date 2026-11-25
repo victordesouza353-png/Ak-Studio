@@ -145,7 +145,7 @@ td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:righ
   <nav class="top" aria-label="Sections">
     <div class="brand"><div class="bolt" aria-hidden="true"><svg width="14" height="18" viewBox="0 0 14 18"><path d="M9 0 0 10h5l-1 8 10-11H8l1-7z" fill="#fff"/></svg></div>AK STUDIO</div>
     <div class="tabs" role="tablist">
-      <a href="#home">Home</a><a href="#tracker">Tracker</a><a href="requests.html">Requests &#8599;</a><a href="#study">Reel Study</a><a href="#stats">Page Stats</a><a href="#sounds">Sounds</a><a href="#rules">Rules</a>
+      <a href="#home">Home</a><a href="#tracker">Tracker</a><a href="#study">Reel Study</a><a href="#stats">Page Stats</a><a href="#sounds">Sounds</a><a href="#rules">Rules</a>
     </div>
     <div class="live"><span class="dot" id="dot"></span><span id="liveTxt">connecting</span></div>
   </nav>
@@ -155,13 +155,13 @@ td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:righ
     <div class="hero">
       <div class="eyebrow">Surge · @brooa7a · edit room</div>
       <h1>Five reels.<br><span>Every day.</span></h1>
-      <p>Everything Victor and Claude do for AK in one place: what got made, what got posted and paid, what to make next, and what the page is telling us.</p>
+      <p>Everything for AK's page in one place: what got made, what got posted and paid, what to make next, and what the page is telling us.</p>
     </div>
     <div class="grid g4" id="homeStats">
       <div class="panel stat tilt red"><div class="k">Unpaid</div><div class="v" id="hUnpaid">—</div><div class="n" id="hUnpaidN">loading</div></div>
       <div class="panel stat tilt gold"><div class="k">Paid so far</div><div class="v" id="hPaid">—</div><div class="n" id="hPaidN">&nbsp;</div></div>
       <div class="panel stat tilt green"><div class="k">Posted reels</div><div class="v" id="hPosted">—</div><div class="n" id="hPostedN">&nbsp;</div></div>
-      <a class="panel stat tilt" href="requests.html" style="text-decoration:none;color:inherit"><div class="k">Open requests</div><div class="v" id="hReq">—</div><div class="n">open the requests site &#8599;</div></a>
+      <div class="panel stat tilt"><div class="k">Delivered</div><div class="v" id="hDel">—</div><div class="n">waiting on AK</div></div>
     </div>
     <div class="grid g2" style="margin-top:14px">
       <div class="panel tilt">
@@ -209,7 +209,7 @@ td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:righ
 
   <!-- STUDY -->
   <section data-view="study" hidden>
-    <div class="row-head"><div><div class="eyebrow">Daily</div><h2>Reel Study</h2></div><span class="note">Claude writes one entry per study of @brooa7a</span></div>
+    <div class="row-head"><div><div class="eyebrow">Daily</div><h2>Reel Study</h2></div><span class="note">One entry per study of @brooa7a</span></div>
     <div class="study" id="studyList"><div class="empty">No studies yet.</div></div>
   </section>
 
@@ -345,7 +345,7 @@ function renderTracker(){
   $('#tPaid').textContent=$('#hPaid').textContent=money(paid);$('#hPaidN').textContent=rows.filter(r=>r.paid).length+' reels paid';
   $('#tPost').textContent=$('#hPosted').textContent=posted.length;
   const tv=posted.reduce((s,r)=>s+(+r.views||0),0);$('#hPostedN').textContent=tv.toLocaleString('en-US')+' total views';
-  $('#tDel').textContent=delivered.length;
+  $('#tDel').textContent=$('#hDel').textContent=delivered.length;
   if(!rows.length){$('#trackerBody').innerHTML='<tr><td colspan="8"><div class="empty">No reels logged yet. Add the first one below.</div></td></tr>';return}
   let html='',last='';
   rows.forEach(r=>{if(r.date!==last){html+=`<tr class="day"><td colspan="8">${esc(fmtDate(r.date))}</td></tr>`;last=r.date}
@@ -357,13 +357,11 @@ function renderTracker(){
     <td><button class="x" title="Remove" aria-label="Remove ${esc(r.title)}" data-act="del" data-id="${esc(r.id)}">×</button></td></tr>`});
   $('#trackerBody').innerHTML=html;
 }
-function renderRequests(){
-  $('#hReq').textContent=state.requests.filter(r=>r.status!=='done').length;
-}
+function renderRequests(){}
 function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('')}
 function renderStudy(){
   const list=state.study.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  if(!list.length){$('#studyList').innerHTML='<div class="empty">No studies yet. Ask Claude to study the page.</div>';$('#latestStudy').innerHTML='';return}
+  if(!list.length){$('#studyList').innerHTML='<div class="empty">No studies yet.</div>';$('#latestStudy').innerHTML='';return}
   $('#studyList').innerHTML=list.map(s=>`<div class="card panel tilt"><div class="meta"><span>${esc(fmtDate(s.date))}</span></div><h3>${esc(s.headline||'Reel study')}</h3>${s.summary?`<p style="color:var(--dim)">${esc(s.summary)}</p>`:''}
     <div class="cols"><div><h4 class="h-good">Working</h4><ul>${li(s.working)}</ul></div><div><h4 class="h-bad">Not working</h4><ul>${li(s.notWorking)}</ul></div><div><h4 class="h-next">Make next</h4><ul>${li(s.next)}</ul></div></div></div>`).join('');
   const s=list[0];$('#latestStudyDate').textContent=fmtDate(s.date)+' · '+(s.headline||'');
@@ -421,7 +419,7 @@ $('#addRule').addEventListener('submit',async e=>{e.preventDefault();if(!db){toa
   if(!db){clearTimeout(timer);setLive(false,'database not connected');['#trackerBody'].forEach(s=>$(s).innerHTML='<tr><td colspan="8"><div class="empty">The database is not connected yet.</div></td></tr>');return}
   const live=()=>{clearTimeout(timer);setLive(true,'live')};
   const sub=(col,key,fn)=>db.collection(col).onSnapshot(s=>{state[key]=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(!s.metadata.fromCache)live();fn()},err=>setLive(false,'error · '+err.code));
-  sub('slots','slots',renderTracker);sub('requests','requests',renderRequests);sub('study','study',renderStudy);sub('sounds','sounds',renderSounds);
+  sub('slots','slots',renderTracker);sub('study','study',renderStudy);sub('sounds','sounds',renderSounds);
   db.doc('meta/rules').onSnapshot(d=>{state.rules=d.exists?d.data():{items:[]};renderRules()},()=>{});
   db.doc('meta/stats').onSnapshot(d=>{state.stats=d.exists?d.data():null;renderStats()},()=>{});
 })();
